@@ -1,0 +1,33 @@
+name: Fetch encrypted audit handoff
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/fetch-encrypted-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download encrypted workbook handoff
+        run: |
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 180 \
+            'https://tmpfiles.org/dl/wTwJrdWizSS1/medusa-audit-handoff.bin' \
+            --output medusa-audit-handoff.bin
+          test -s medusa-audit-handoff.bin
+          ls -lh medusa-audit-handoff.bin
+          sha256sum medusa-audit-handoff.bin
+      - name: Upload encrypted handoff artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-medusa-audit-handoff
+          path: medusa-audit-handoff.bin
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
